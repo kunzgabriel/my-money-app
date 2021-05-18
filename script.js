@@ -5,7 +5,9 @@ const balanceDisplay = document.querySelector('#balance')
 const form = document.querySelector('#form')
 const inputTransactionName = document.querySelector('#textTransaction')
 const inputTransactionAmount = document.querySelector('#amountTransaction')
+const transactionDateInput = document.querySelector('#transactionDate')
 const transactionType = document.querySelector('#transactionType')
+const filtroData = document.querySelector('#filtroData');
 
 const localStorageTransactions = JSON.parse(localStorage
     .getItem('transactions'))
@@ -38,7 +40,7 @@ const addTransactionIntoDOM = transaction => {
 
 const updateBalanceValues = () => {
     const transactionsAmounts = transactions
-        .map(transaction => transaction.amount)
+        .map(transaction => transaction.date === filtroData.value ? transaction.amount : null)
     const total = transactionsAmounts
         .reduce((accumulator, transaction) => accumulator + transaction, 0)
         .toFixed(2)
@@ -58,7 +60,11 @@ const updateBalanceValues = () => {
 
 const init = () => {
     transactionsUl.innerHTML = ''
-    transactions.forEach(addTransactionIntoDOM)
+    transactions.forEach(transaction => {
+        if (transaction.date === filtroData.value){
+            addTransactionIntoDOM(transaction);
+        }
+    })
     updateBalanceValues()
 }
 
@@ -72,24 +78,25 @@ const generateID = () => Math.round(Math.random() * 1000)
 
 const addTransactions = () =>{
     const transactionTypeIndex = transactionType.options[transactionType.selectedIndex].value;
-    const transactionName = inputTransactionName.value.trim()
-    let transactionAmountAux = inputTransactionAmount.value.trim().replace(/,/g, '.')
-    const transactionAmount = transactionAmountAux.replace("-",""
-    )
+    const transactionName = inputTransactionName.value.trim();
+    const transactionDate = transactionDateInput.value.trim();
+    let transactionAmountAux = inputTransactionAmount.value.trim().replace(/,/g, '.');
+    const transactionAmount = transactionAmountAux.replace("-","");
     const transaction = { 
         id: generateID(), 
         name: transactionName, 
-        amount: transactionTypeIndex === "expense" ? (Number(transactionAmount) * (-1)) : Number(transactionAmount)
+        amount: transactionTypeIndex === "expense" ? (Number(transactionAmount) * (-1)) : Number(transactionAmount),
+        date: transactionDate
     }
 
-    transactions.push(transaction)
+    transactions.push(transaction);
 }
 
 form.addEventListener('submit', event => {
-    event.preventDefault()
+    event.preventDefault();
 
-    const transactionName = inputTransactionName.value.trim()
-    const transactionAmount = inputTransactionAmount.value.trim()
+    const transactionName = inputTransactionName.value.trim();
+    const transactionAmount = inputTransactionAmount.value.trim();
     const transactionTypeIndex = transactionType.options[transactionType.selectedIndex].value;
     if (transactionName === '' || transactionAmount === '' || transactionTypeIndex === 'selectType'){
         alert('Por favor preencha os dados de Nome, Valor e Tipo da Transação!')
@@ -104,3 +111,5 @@ form.addEventListener('submit', event => {
     inputTransactionAmount.value = ''
     transactionType.selectedIndex = '0'
 })
+
+filtroData.addEventListener('change', init);
